@@ -5,6 +5,7 @@ function connect(callback) {
     user: "root",
     password: "Tranduyhung11",
     database: "flixtor",
+    multipleStatements: true,
   });
   con.connect(function (err) {
     if (err) throw err;
