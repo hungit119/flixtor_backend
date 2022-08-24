@@ -6,6 +6,39 @@ class FilmController {
   index(req, res) {
     res.json({ message: "success" });
   }
+  // [GET] /api/films/type/:params
+  filmsTypeMovies(req, res) {
+    db.connect((con) => {
+      const query = `select film.stt,film.film_id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.type_title as type,quantities.quantity_title as quantity,years.year_title as year,
+      group_concat(distinct genres.genre_title order by genres.genre_title separator ", ") as genres,
+      group_concat(distinct countries.country_title order by countries.country_title separator ", ") as countries,
+      group_concat(distinct casts.cast_title order by casts.cast_title separator ", ") as casts,
+      group_concat(distinct productions.production_title order by productions.production_title separator ", ") as productions,film.up_to_date
+      from film
+      inner join film_genre on film_genre.film_id = film.film_id
+      inner join genres on genres.genre_id = film_genre.genre_id
+      inner join film_country on film_country.film_id = film.film_id
+      inner join countries on countries.country_id = film_country.country_id
+      inner join film_cast on film_cast.film_id = film.film_id
+      inner join casts on casts.cast_id = film_cast.cast_id
+      inner join film_production on film_production.film_id = film.film_id
+      inner join productions on productions.production_id = film_production.production_id
+      inner join types on types.type_id = film.type_id
+      inner join quantities on quantities.quantity_id = film.quantity_id
+      inner join years on years.year_id = film.year_id
+      where types.type_title = '${req.params.params}'
+      group by film.title
+      order by film.stt`;
+      con.query(query, function (err, results) {
+        if (err) throw err;
+        res.json({
+          success: true,
+          message: "get films type of movie done !",
+          filmsMovies: results,
+        });
+      });
+    });
+  }
   // [GET] /api/film/:id
   film(req, res) {
     const film_id = req.params.id;
@@ -51,7 +84,7 @@ class FilmController {
   read(req, res) {
     try {
       db.connect((con) => {
-        const querySelectAllFilm = `SELECT film_id,title FROM film`;
+        const querySelectAllFilm = `SELECT stt,film_id,title FROM film`;
         con.query(querySelectAllFilm, (error, rows) => {
           if (error) throw error;
           res.json({
@@ -80,9 +113,14 @@ class FilmController {
           productions_film,
         },
       } = req.body;
+      const descriptionHanlde = filmData.description
+        .split("")
+        .filter((des) => des !== '"')
+        .join("");
       const filmRow = {
         film_id: uuid.v4(),
         ...filmData,
+        description: descriptionHanlde,
       };
       const genres = genres_film.split(",");
       const countries = countries_film.split(",");

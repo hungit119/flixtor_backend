@@ -9,8 +9,8 @@ function connect(callback) {
   });
   con.connect(function (err) {
     if (err) throw err;
-    console.log("Connected !");
     callback(con);
+    return con;
   });
 }
 module.exports = { connect };
