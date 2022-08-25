@@ -7,7 +7,7 @@ class FilmController {
     res.json({ message: "success" });
   }
   // [GET] /api/films/type/:params
-  filmsTypeMovies(req, res) {
+  filmsType(req, res) {
     db.connect((con) => {
       const query = `select film.stt,film.film_id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.type_title as type,quantities.quantity_title as quantity,years.year_title as year,
       group_concat(distinct genres.genre_title order by genres.genre_title separator ", ") as genres,
@@ -34,7 +34,7 @@ class FilmController {
         res.json({
           success: true,
           message: "get films type of movie done !",
-          filmsMovies: results,
+          filmsType: results,
         });
       });
     });

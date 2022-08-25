@@ -5,7 +5,7 @@ const Router = express.Router();
 // [GET] /api/films
 Router.get("/films", filmController.read);
 // [GET] /api/films/type/:params
-Router.get("/films/type/:params", filmController.filmsTypeMovies);
+Router.get("/films/type/:params", filmController.filmsType);
 // [GET] /api/film/:id
 Router.get("/film/:id", filmController.film);
 // [GET] /api/film/:id
