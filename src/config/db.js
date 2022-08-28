@@ -9,6 +9,7 @@ function connect(callback) {
   });
   con.connect(function (err) {
     if (err) throw err;
+    console.log("connected");
     callback(con);
     return con;
   });
