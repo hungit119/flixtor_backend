@@ -11,9 +11,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
-db.connect((con) => {
-  console.log("query connection ");
-});
+db.connect();
 router(app);
 
 app.listen(PORT, () => {

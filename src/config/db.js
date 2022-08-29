@@ -1,17 +1,15 @@
 const mysql = require("mysql");
-function connect(callback) {
-  const con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "Tranduyhung11",
-    database: "flixtor",
-    multipleStatements: true,
-  });
+const con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "Tranduyhung11",
+  database: "flixtor",
+  multipleStatements: true,
+});
+function connect() {
   con.connect(function (err) {
     if (err) throw err;
     console.log("connected");
-    callback(con);
-    return con;
   });
 }
-module.exports = { connect };
+module.exports = { connect, con };
