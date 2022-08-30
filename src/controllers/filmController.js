@@ -28,7 +28,8 @@ class FilmController {
       inner join years on years.id = film.year_id
       where types.title = '${req.params.params}'
       group by film.title
-      order by film.stt`;
+      order by film.stt
+      LIMIT 24;`;
     con.query(query, function (err, results) {
       if (err) throw err;
       res.json({
