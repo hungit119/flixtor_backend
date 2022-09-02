@@ -23,7 +23,8 @@ class FilmController {
     inner join productions on productions.id = film_production.production_id
     inner join types on types.id = film.type_id
     where film.id = '${id}'
-    group by film.title;`;
+    group by film.title
+    ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
     con.query(query, function (error, rows) {
       if (error) {
         res.status(400).json({ success: false, message: "query error" });
@@ -98,7 +99,7 @@ class FilmController {
     inner join years on years.id = film.year_id
     where types.title = '${req.params.type}'
     group by film.title
-    order by up_to_date desc
+    order by film.releases desc
     ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
 
     con.query(query, function (error, rows) {
@@ -174,7 +175,7 @@ class FilmController {
       req.query.year ? `and years.title = ${req.query.year}` : ""
     }
       group by film.title
-      order by film.stt
+      order by film.up_to_date desc
       ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
     con.query(query, function (err, results) {
       if (err) throw err;
