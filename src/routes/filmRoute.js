@@ -10,6 +10,10 @@ Router.get("/films/type/:params", filmController.filmsType);
 Router.get("/film/:id", filmController.film);
 // [POST] /api/film/create
 Router.post("/film/create", filmController.create);
+// [POST] /api/films/filter
+Router.post("/films/filter", filmController.filter);
+// [GET] /api/films/byType
+Router.get("/films/byType", filmController.filmByType);
 // [GET] /api/films/lastest/:type
 Router.get("/films/lastest/:type", filmController.selectLastest);
 // [GET] /api/films/suggest/:id

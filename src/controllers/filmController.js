@@ -7,6 +7,117 @@ class FilmController {
   index(req, res) {
     res.json({ message: "success" });
   }
+  // [GET] /api/films/byType
+  filmByType(req, res) {
+    const { key, type } = req.query;
+    const filter = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    group_concat(distinct genres.title order by genres.title separator ", ") as genres,
+    group_concat(distinct countries.title order by countries.title separator ", ") as countries,
+    group_concat(distinct casts.title order by casts.title separator ", ") as casts,
+    group_concat(distinct productions.title order by productions.title separator ", ") as productions,film.up_to_date
+    from film
+    inner join film_genre on film_genre.film_id = film.id
+    inner join genres on genres.id = film_genre.genre_id
+    inner join film_country on film_country.film_id = film.id
+    inner join countries on countries.id = film_country.country_id
+    inner join film_cast on film_cast.film_id = film.id
+    inner join casts on casts.id = film_cast.cast_id
+    inner join film_production on film_production.film_id = film.id
+    inner join productions on productions.id = film_production.production_id
+    inner join types on types.id = film.type_id
+    inner join quantities on quantities.id = film.quantity_id
+    inner join years on years.id = film.year_id
+    where ${key === "genre" ? "genres" : "countries"}.title in ('${type}')
+    group by film.title
+    order by film.stt desc
+    ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
+    con.query(filter, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "Get films by type done",
+        filmsByType: rows,
+      });
+    });
+  }
+  // [POST] /api/films/filter
+  filter(req, res) {
+    const filters = req.body.filters;
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    group_concat(distinct genres.title order by genres.title separator ", ") as genres,
+    group_concat(distinct countries.title order by countries.title separator ", ") as countries,
+    group_concat(distinct casts.title order by casts.title separator ", ") as casts,
+    group_concat(distinct productions.title order by productions.title separator ", ") as productions,film.up_to_date
+    from film
+    inner join film_genre on film_genre.film_id = film.id
+    inner join genres on genres.id = film_genre.genre_id
+    inner join film_country on film_country.film_id = film.id
+    inner join countries on countries.id = film_country.country_id
+    inner join film_cast on film_cast.film_id = film.id
+    inner join casts on casts.id = film_cast.cast_id
+    inner join film_production on film_production.film_id = film.id
+    inner join productions on productions.id = film_production.production_id
+    inner join types on types.id = film.type_id
+    inner join quantities on quantities.id = film.quantity_id
+    inner join years on years.id = film.year_id
+    ${
+      filters.genre.length > 0 &&
+      filters.type.length > 0 &&
+      filters.country.length > 0 &&
+      filters.year.length > 0 &&
+      filters.quantity.length > 0
+        ? `where genres.title in (${filters.genre.map(
+            (gen) => `'${gen}'`
+          )}) and types.title in (${filters.type.map(
+            (ty) => `'${ty}'`
+          )}) and countries.title in (${filters.country.map(
+            (coun) => `'${coun}'`
+          )}) and years.title in (${filters.year.map(
+            (ye) => `'${ye}'`
+          )}) and quantities.title in (${filters.quantity.map(
+            (quan) => `'${quan}'`
+          )})`
+        : filters.genre.length > 0 &&
+          filters.type.length > 0 &&
+          filters.country.length > 0 &&
+          filters.year.length > 0
+        ? `where genres.title in (${filters.genre.map(
+            (gen) => `'${gen}'`
+          )}) and types.title in (${filters.type.map(
+            (ty) => `'${ty}'`
+          )}) and countries.title in (${filters.country.map(
+            (coun) => `'${coun}'`
+          )}) and years.title in (${filters.year.map((ye) => `'${ye}'`)})`
+        : filters.genre.length > 0 &&
+          filters.type.length > 0 &&
+          filters.country.length > 0
+        ? `where genres.title in (${filters.genre.map(
+            (gen) => `'${gen}'`
+          )}) and types.title in (${filters.type.map(
+            (ty) => `'${ty}'`
+          )}) and countries.title in (${filters.country.map(
+            (coun) => `'${coun}'`
+          )})`
+        : filters.genre.length > 0 && filters.type.length > 0
+        ? `where genres.title in (${filters.genre.map(
+            (gen) => `'${gen}'`
+          )}) and types.title in (${filters.type.map((ty) => `'${ty}'`)})`
+        : filters.genre.length > 0
+        ? `where genres.title in (${filters.genre.map((gen) => `'${gen}'`)})`
+        : ``
+    }   
+    group by film.title
+    order by film.stt desc
+    ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "Get films filter done !",
+        filmsFilter: rows,
+      });
+    });
+  }
   // [GET] /api/films/suggest/:id
   selectFilmsSuggest(req, res) {
     const { id } = req.params;
