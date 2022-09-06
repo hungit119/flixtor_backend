@@ -7,6 +7,38 @@ class FilmController {
   index(req, res) {
     res.json({ message: "success" });
   }
+  // [GET] /api/films/search
+  search(req, res) {
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    group_concat(distinct genres.title order by genres.title separator ", ") as genres,
+    group_concat(distinct countries.title order by countries.title separator ", ") as countries,
+    group_concat(distinct casts.title order by casts.title separator ", ") as casts,
+    group_concat(distinct productions.title order by productions.title separator ", ") as productions,film.up_to_date
+    from film
+    inner join film_genre on film_genre.film_id = film.id
+    inner join genres on genres.id = film_genre.genre_id
+    inner join film_country on film_country.film_id = film.id
+    inner join countries on countries.id = film_country.country_id
+    inner join film_cast on film_cast.film_id = film.id
+    inner join casts on casts.id = film_cast.cast_id
+    inner join film_production on film_production.film_id = film.id
+    inner join productions on productions.id = film_production.production_id
+    inner join types on types.id = film.type_id
+    inner join quantities on quantities.id = film.quantity_id
+    inner join years on years.id = film.year_id
+    where film.title like '%${req.query.keyword}%'
+    group by film.title
+    order by film.stt desc
+    ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "get films search done",
+        searchResult: rows,
+      });
+    });
+  }
   // [GET] /api/films/byType
   filmByType(req, res) {
     const { key, type } = req.query;

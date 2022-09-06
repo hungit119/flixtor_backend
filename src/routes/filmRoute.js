@@ -14,6 +14,8 @@ Router.post("/film/create", filmController.create);
 Router.post("/films/filter", filmController.filter);
 // [GET] /api/films/byType
 Router.get("/films/byType", filmController.filmByType);
+// [GET] /api/films/search
+Router.get("/films/search", filmController.search);
 // [GET] /api/films/lastest/:type
 Router.get("/films/lastest/:type", filmController.selectLastest);
 // [GET] /api/films/suggest/:id
