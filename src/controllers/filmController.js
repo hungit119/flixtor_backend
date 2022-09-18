@@ -7,7 +7,22 @@ class FilmController {
   index(req, res) {
     res.json({ message: "success" });
   }
-  // [GET] /api/film/update
+  // [POST] /api/film/sortDelete
+  sortDel(req, res) {
+    const { id } = req.body;
+    const query = `update film
+    set sortDel = true
+    where film.id = '${id}'`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "updated sortDel column",
+        id: id,
+      });
+    });
+  }
+  // [POST] /api/film/update
   updateFilmById(req, res) {
     const { idFilm, stt } = req.query;
     const { newPayload } = req.body;
@@ -493,7 +508,7 @@ class FilmController {
   // [GET] /api/films
   read(req, res) {
     try {
-      const querySelectAllFilm = `SELECT stt,id,title FROM film`;
+      const querySelectAllFilm = `SELECT stt,id,title,sortDel FROM film`;
       con.query(querySelectAllFilm, (error, rows) => {
         if (error) throw error;
         res.json({

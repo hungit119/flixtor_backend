@@ -2,6 +2,8 @@ const express = require("express");
 const filmController = require("../controllers/filmController");
 const Router = express.Router();
 
+// [POST] /api/film/sortDelete
+Router.post("/film/sortDelete", filmController.sortDel);
 // [POST] /api/film/update?idFilm=
 Router.post("/film/update", filmController.updateFilmById);
 // [GET] /api/films/:condition/key/value
