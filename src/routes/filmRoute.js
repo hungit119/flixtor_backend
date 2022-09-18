@@ -2,7 +2,9 @@ const express = require("express");
 const filmController = require("../controllers/filmController");
 const Router = express.Router();
 
-//[GET] /api/films/:condition/key/value
+// [POST] /api/film/update?idFilm=
+Router.post("/film/update", filmController.updateFilmById);
+// [GET] /api/films/:condition/key/value
 Router.get("/films/:condition/:key/:value", filmController.selectByCondition);
 // [GET] /api/films/type/:params
 Router.get("/films/type/:params", filmController.filmsType);
