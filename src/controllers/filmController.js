@@ -7,11 +7,25 @@ class FilmController {
   index(req, res) {
     res.json({ message: "success" });
   }
+  // [POST] /api/film/remove
+  remove(req, res) {
+    const { id } = req.body;
+    const query = `delete from film_cast where film_cast.film_id = '${id}';
+    delete from film_country where film_country.film_id = '${id}';
+    delete from film_genre where film_genre.film_id = '${id}';
+    delete from film_production where film_production.film_id = '${id}';
+    delete from film where film.id = '${id}';`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({ success: true, message: "removed film done", id: id });
+    });
+  }
   // [POST] /api/film/sortDelete
   sortDel(req, res) {
     const { id } = req.body;
+    const { restore } = req.query;
     const query = `update film
-    set sortDel = true
+    set sortDel = ${restore === "true" ? 0 : 1}
     where film.id = '${id}'`;
     con.query(query, function (error, rows) {
       if (error) throw error;
@@ -508,7 +522,10 @@ class FilmController {
   // [GET] /api/films
   read(req, res) {
     try {
-      const querySelectAllFilm = `SELECT stt,id,title,sortDel FROM film`;
+      const { sortDel } = req.query;
+      const querySelectAllFilm = `SELECT stt,id,title,sortDel FROM film ${
+        sortDel ? "where sortDel=1" : ""
+      }`;
       con.query(querySelectAllFilm, (error, rows) => {
         if (error) throw error;
         res.json({
