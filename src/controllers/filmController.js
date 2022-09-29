@@ -210,7 +210,15 @@ class FilmController {
     inner join types on types.id = film.type_id
     inner join quantities on quantities.id = film.quantity_id
     inner join years on years.id = film.year_id
-    where ${key === "genre" ? "genres" : "countries"}.title in ('${type}')
+    where ${
+      key === "genre"
+        ? "genres"
+        : key === "country"
+        ? "countries"
+        : key === "cast"
+        ? "casts"
+        : "productions"
+    }.title in ('${type}')
     group by film.title
     order by film.stt desc
     ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
