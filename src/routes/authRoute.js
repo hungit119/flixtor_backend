@@ -9,5 +9,11 @@ Router.get("/", verifyToken, authController.auth);
 Router.post("/register", authController.register);
 // [POST] /api/auth/login
 Router.post("/login", authController.login);
+// [POST] /api/auth/checkConfirmPassword
+Router.post(
+  "/checkConfirmPassword",
+  verifyToken,
+  authController.checkConfirmPassword
+);
 
 module.exports = Router;

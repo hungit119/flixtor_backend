@@ -1,7 +1,21 @@
 const express = require("express");
 const filmController = require("../controllers/filmController");
+const verifyToken = require("../middlewares/verifyToken");
 const Router = express.Router();
-
+// [GET] /api/film/watchlist/addedWatchlist
+Router.get(
+  "/film/watchlist/addedWatchlist",
+  verifyToken,
+  filmController.addedWatchlist
+);
+// [POST] /api/film/watchlist/add
+Router.post("/film/watchlist/add", verifyToken, filmController.addToWatchlist);
+// [GET] /api/film/watch-list/remove
+Router.get(
+  "/film/watch-list/remove",
+  verifyToken,
+  filmController.removeWatchList
+);
 // [POST] /api/film/remove
 Router.post("/film/remove", filmController.remove);
 // [POST] /api/film/sortDelete
@@ -22,6 +36,8 @@ Router.post("/films/filter", filmController.filter);
 Router.get("/films/byType", filmController.filmByType);
 // [GET] /api/films/search
 Router.get("/films/search", filmController.search);
+// [GET] /api/films/watch-list
+Router.get("/films/watch-list", verifyToken, filmController.watchlist);
 // [GET] /api/films/lastest/:type
 Router.get("/films/lastest/:type", filmController.selectLastest);
 // [GET] /api/films/suggest/:id

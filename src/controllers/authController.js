@@ -105,16 +105,58 @@ class AuthController {
       console.log(error.message);
     }
   }
+  // [GET] /api/auth/
   auth(req, res) {
     const { userId } = req;
-    const query = `select username,email from user where id = '${userId}'`;
+    const query = `select id,username,email from user where id = '${userId}'`;
     con.query(query, function (error, rows) {
       if (error) throw error;
       res.json({
         success: true,
         message: "load user successfully",
-        userInfo: rows[0],
+        userInfo: {
+          ...rows[0],
+          password: "00000000",
+        },
       });
+    });
+  }
+  // [GET] /api/watchlist/addedWatchlist
+  addedWatchlist(req, res) {
+    console.log("success");
+  }
+  // [POST] /api/auth/checkConfirmPassword
+  checkConfirmPassword(req, res) {
+    const { confirmPassword, username, email } = req.body.data;
+    const query = `select password from user where id = '${req.userId}'`;
+    con.query(query, async function (error, rows) {
+      if (error) throw error;
+      const decodedPassword = await argon2.verify(
+        rows[0].password,
+        confirmPassword
+      );
+      if (decodedPassword) {
+        const query = `update user set username='${username}',email='${email}' where user.id = '${req.userId}'`;
+        con.query(query, function (error, rows) {
+          if (error) throw error;
+          const queryAfterUpdate = `select username,email from user where id='${req.userId}'`;
+          con.query(queryAfterUpdate, function (error, rows) {
+            if (error) throw error;
+            res.json({
+              success: true,
+              message: "password match confirm password",
+              verify: true,
+              newData: rows[0],
+            });
+          });
+        });
+      } else {
+        res.json({
+          success: true,
+          message: "password not match confirm password",
+          verify: false,
+        });
+      }
     });
   }
 }

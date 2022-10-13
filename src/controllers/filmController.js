@@ -1,11 +1,119 @@
 const { con } = require("../config/db");
 const uuid = require("uuid");
 const upperCaseFirst = require("../utils/UppercaseFistChar");
+const Response = require("../utils/Response");
 
 class FilmController {
   // [GET] /api
   index(req, res) {
     res.json({ message: "success" });
+  }
+  // [GET] /api/film/watch-list/remove
+  removeWatchList(req, res) {
+    const { fid } = req.query;
+    const query = `delete from watchlist_user where user_id = '${req.userId}' and film_id = '${fid}'`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      con.query(
+        `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+      group_concat(distinct genres.title order by genres.title separator ", ") as genres,
+      group_concat(distinct countries.title order by countries.title separator ", ") as countries,
+      group_concat(distinct casts.title order by casts.title separator ", ") as casts,
+      group_concat(distinct productions.title order by productions.title separator ", ") as productions,film.up_to_date
+      from film
+      inner join film_genre on film_genre.film_id = film.id
+      inner join genres on genres.id = film_genre.genre_id
+      inner join film_country on film_country.film_id = film.id
+      inner join countries on countries.id = film_country.country_id
+      inner join film_cast on film_cast.film_id = film.id
+      inner join casts on casts.id = film_cast.cast_id
+      inner join film_production on film_production.film_id = film.id
+      inner join productions on productions.id = film_production.production_id
+      inner join types on types.id = film.type_id
+      inner join quantities on quantities.id = film.quantity_id
+      inner join years on years.id = film.year_id
+      inner join watchlist_user on film.id = watchlist_user.film_id
+      inner join user on watchlist_user.user_id = user.id
+      where user.id = '${req.userId}'
+      group by film.title
+      order by film.up_to_date desc`,
+        function (error, rows) {
+          if (error) throw error;
+          res.json(
+            Response.response(true, "delete film from watch list done !", rows)
+          );
+        }
+      );
+    });
+  }
+  // [GET] /api/films/watch-list
+  watchlist(req, res) {
+    const { sortBy } = req.query;
+    const user_id = req.userId;
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    group_concat(distinct genres.title order by genres.title separator ", ") as genres,
+    group_concat(distinct countries.title order by countries.title separator ", ") as countries,
+    group_concat(distinct casts.title order by casts.title separator ", ") as casts,
+    group_concat(distinct productions.title order by productions.title separator ", ") as productions,film.up_to_date
+    from film
+    inner join film_genre on film_genre.film_id = film.id
+    inner join genres on genres.id = film_genre.genre_id
+    inner join film_country on film_country.film_id = film.id
+    inner join countries on countries.id = film_country.country_id
+    inner join film_cast on film_cast.film_id = film.id
+    inner join casts on casts.id = film_cast.cast_id
+    inner join film_production on film_production.film_id = film.id
+    inner join productions on productions.id = film_production.production_id
+    inner join types on types.id = film.type_id
+    inner join quantities on quantities.id = film.quantity_id
+    inner join years on years.id = film.year_id
+    inner join watchlist_user on film.id = watchlist_user.film_id
+    inner join user on watchlist_user.user_id = user.id
+    where user.id = '${user_id}'
+    group by film.title
+    order by ${
+      sortBy === "name a-z"
+        ? "film.title"
+        : sortBy === "imdb"
+        ? "film.imdb"
+        : sortBy === "release date"
+        ? "film.releases"
+        : sortBy === "recently added"
+        ? "film.up_to_date"
+        : "watchlist_user.up_to_date"
+    } desc`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json(
+        Response.response(true, "get film from watch list success", rows)
+      );
+    });
+  }
+  // [POST] /api/film/watchlist/add
+  addToWatchlist(req, res) {
+    const { fid } = req.body;
+    const query = `Insert into watchlist_user (user_id,film_id) values('${req.userId}','${fid}')`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "add film to watchlist user successfully",
+      });
+    });
+  }
+  // [GET] /api/film/watchlist/addedWatchlist
+  addedWatchlist(req, res) {
+    const { fid } = req.query;
+    // check from database
+    const query = `Select * from watchlist_user where user_id='${req.userId}' and film_id='${fid}';`;
+    con.query(query, function (error, rows) {
+      if (error) throw error;
+      res.json({
+        success: true,
+        message: "checked successfully",
+        rows,
+      });
+    });
   }
   // [POST] /api/film/remove
   remove(req, res) {
