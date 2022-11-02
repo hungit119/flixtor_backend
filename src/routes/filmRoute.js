@@ -17,11 +17,11 @@ Router.get(
   filmController.removeWatchList
 );
 // [POST] /api/film/remove
-Router.post("/film/remove", filmController.remove);
+Router.post("/film/remove", verifyToken, filmController.remove);
 // [POST] /api/film/sortDelete
-Router.post("/film/sortDelete", filmController.sortDel);
+Router.post("/film/sortDelete", verifyToken, filmController.sortDel);
 // [POST] /api/film/update?idFilm=
-Router.post("/film/update", filmController.updateFilmById);
+Router.post("/film/update", verifyToken, filmController.updateFilmById);
 // [GET] /api/films/:condition/key/value
 Router.get("/films/:condition/:key/:value", filmController.selectByCondition);
 // [GET] /api/films/type/:params
@@ -29,7 +29,7 @@ Router.get("/films/type/:params", filmController.filmsType);
 // [GET] /api/film/:id
 Router.get("/film/:id", filmController.film);
 // [POST] /api/film/create
-Router.post("/film/create", filmController.create);
+Router.post("/film/create", verifyToken, filmController.create);
 // [POST] /api/films/filter
 Router.post("/films/filter", filmController.filter);
 // [GET] /api/films/byType

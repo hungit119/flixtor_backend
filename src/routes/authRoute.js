@@ -15,5 +15,11 @@ Router.post(
   verifyToken,
   authController.checkConfirmPassword
 );
+// [GET] /api/auth/activate/:token
+Router.get("/activate/:token", authController.activateToken);
+// [POST] /api/auth/forgotPassword
+Router.post("/forgotPassword", authController.forgotPassword);
+// [POST] /api/auth/changePassword
+Router.post("/changePassword/:token", authController.changePassword);
 
 module.exports = Router;

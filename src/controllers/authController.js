@@ -2,6 +2,7 @@ const { con } = require("../config/db");
 const argon2 = require("argon2");
 const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
+const { sendVerificationEmail } = require("../utils/mailer");
 class AuthController {
   // [POST] /api/auth/register
   async register(req, res) {
@@ -28,22 +29,39 @@ class AuthController {
               email,
               rule: 1,
             };
-            const accessToken = jwt.sign(
-              {
-                id: newUser.id,
-              },
-              process.env.SECRET_KEY_TOKEN
-            );
             const query = `insert into user (id,username,email,password,rule)
             values ('${newUser.id}','${newUser.username}','${newUser.email}','${newUser.passwordEcoded}','${newUser.rule}')`;
             con.query(query, function (error, rows) {
               if (error) throw error;
+              const emailVerifycationToken = jwt.sign(
+                { userId: newUser.id },
+                process.env.SECRET_KEY_TOKEN,
+                {
+                  expiresIn: "30m",
+                }
+              );
+              const url = `${process.env.BASE_URL2}/api/auth/activate/${emailVerifycationToken}`;
+              sendVerificationEmail(
+                newUser.email,
+                newUser.username,
+                url,
+                "confirm"
+              );
+              const accessToken = jwt.sign(
+                {
+                  id: newUser.id,
+                  rule: newUser.rule,
+                },
+                process.env.SECRET_KEY_TOKEN
+              );
               res.json({
                 success: true,
                 message: "register successfully !",
                 reply: {
+                  id: newUser.id,
                   username: newUser.username,
                   email: newUser.email,
+                  verify: false,
                   accessToken,
                 },
               });
@@ -65,7 +83,7 @@ class AuthController {
     const { username, password } = req.body;
     try {
       // check username existing
-      const query = `select id,username,password from user where username = '${username}'`;
+      const query = `select id,username,password,rule from user where username = '${username}'`;
       con.query(query, async function (error, rows) {
         if (error) throw error;
         if (rows.length === 0) {
@@ -85,7 +103,7 @@ class AuthController {
             });
           } else {
             const accessToken = jwt.sign(
-              { id: rows[0].id },
+              { id: rows[0].id, rule: rows[0].rule },
               process.env.SECRET_KEY_TOKEN
             );
             return res.json({
@@ -108,7 +126,7 @@ class AuthController {
   // [GET] /api/auth/
   auth(req, res) {
     const { userId } = req;
-    const query = `select id,username,email from user where id = '${userId}'`;
+    const query = `select id,username,email,verify,rule from user where id = '${userId}'`;
     con.query(query, function (error, rows) {
       if (error) throw error;
       res.json({
@@ -158,6 +176,95 @@ class AuthController {
         });
       }
     });
+  }
+  // [GET] /api/auth/activate/:token
+  activateToken(req, res) {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.SECRET_KEY_TOKEN);
+    const { userId } = decoded;
+    const query = `select * from user where user.id='${userId}'`;
+    con.query(query, (error, rows) => {
+      if (error) throw error;
+      if (rows.length === 1) {
+        if (rows[0].verify === 0) {
+          const query = `update user set verify = 1 where user.id = '${userId}'`;
+          con.query(query, (error) => {
+            if (error) throw error;
+            res.json({
+              success: true,
+              message: "Activated your account",
+            });
+          });
+        } else {
+          res.json({
+            success: false,
+            message: "Your account is activated",
+          });
+        }
+      }
+    });
+  }
+  // [POST] /api/auth/forgotPassword
+  forgotPassword(req, res) {
+    const { username } = req.body;
+    const query = `select * from user where email='${username}'`;
+    con.query(query, (error, rows) => {
+      if (error) throw error;
+      if (rows.length === 0) {
+        res.json({
+          success: false,
+          message: "Email not exist on server",
+        });
+      } else {
+        const emailUser = rows[0].email;
+        const idUser = rows[0].id;
+        const emailVerifycationToken = jwt.sign(
+          { userId: idUser },
+          process.env.SECRET_KEY_TOKEN
+        );
+        const url = `${process.env.BASE_URL2}/api/auth/forgotPassword/${emailVerifycationToken}`;
+        sendVerificationEmail(emailUser, rows[0].username, url, "forgot");
+        res.json({
+          success: true,
+          message:
+            "An email has been sent to your mail.Please check mail and accept!",
+        });
+      }
+    });
+  }
+  // [POST] /api/auth/changePassword
+  async changePassword(req, res) {
+    const { newPassword, confirmPassword } = req.body;
+    if (newPassword !== confirmPassword) {
+      res.json({
+        success: false,
+        message: "new password and confirm password must be same",
+      });
+    } else if (newPassword === "" || confirmPassword === "") {
+      res.json({
+        success: false,
+        message: "new password and confirm password must be fill",
+      });
+    } else {
+      try {
+        const encodedPassword = await argon2.hash(newPassword);
+        const decodedToken = jwt.verify(
+          req.params.token,
+          process.env.SECRET_KEY_TOKEN
+        );
+        const query = `update user set password = '${encodedPassword}' where id='${decodedToken.userId}'`;
+        con.query(query, (error, rows) => {
+          if (error) throw error;
+          res.json({
+            success: true,
+            message: "Change password successfully",
+          });
+        });
+        console.log(query);
+      } catch (error) {
+        throw error;
+      }
+    }
   }
 }
 module.exports = new AuthController();
