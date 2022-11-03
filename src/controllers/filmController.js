@@ -700,32 +700,60 @@ class FilmController {
       const pre_casts = casts.map((cast) => cast.trim());
       var query = `INSERT INTO film (id,title,poster,trailerURL,thumnail,times,description,tags,rating,imdb,releases,director,type_id,quantity_id,year_id)VALUES ("${filmRow.film_id}","${filmRow.title}","${filmRow.poster}","${filmRow.trailerURL}","${filmRow.thumnail}","${filmRow.time}","${filmRow.description}","${filmRow.tags}",${filmRow.rating},${filmRow.imdb},"${filmRow.release}","${filmRow.director}","${filmRow.type_id}","${filmRow.quantity_id}","${filmRow.year_id}");`;
       con.query(query, (error, rows) => {
-        if (error) throw error;
+        if (error)
+          res.json({
+            success: false,
+            message: error.message,
+          });
         console.log("1 record film inserted");
       });
       con.query(queryCountry, (error, rows) => {
-        if (error) throw error;
+        if (error)
+          res.json({
+            success: false,
+            message: error.message,
+          });
         console.log("1 record relationsive film with country inserted");
       });
       con.query(queryGenre, (error, rows) => {
-        if (error) throw error;
+        if (error)
+          res.json({
+            success: false,
+            message: error.message,
+          });
         console.log("1 record film with genre inserted");
       });
       pre_productions.forEach((product) => {
         const querySelectProduct = `SELECT id FROM productions WHERE title = '${product}'`;
         con.query(querySelectProduct, (error, rows) => {
-          if (error) throw error;
+          if (error)
+            res.json({
+              success: false,
+              message: error.message,
+            });
           if (rows.length === 0) {
             const queryInsertProduct = `INSERT INTO productions (id, title)VALUES ('${product}_id',"${product}");`;
             con.query(queryInsertProduct, (error, result) => {
-              if (error) throw error;
+              if (error)
+                res.json({
+                  success: false,
+                  message: error.message,
+                });
               console.log("1 record production inserted");
               const querySelectProduct = `SELECT id FROM productions WHERE title = '${product}'`;
               con.query(querySelectProduct, (error, rows) => {
-                if (error) throw error;
+                if (error)
+                  res.json({
+                    success: false,
+                    message: error.message,
+                  });
                 const queryInsertFilmProduct = `INSERT INTO film_production (film_id, production_id)VALUES ('${filmRow.film_id}', '${rows[0].id}');`;
                 con.query(queryInsertFilmProduct, (error, rows) => {
-                  if (error) throw error;
+                  if (error)
+                    res.json({
+                      success: false,
+                      message: error.message,
+                    });
                   console.log(
                     "1 record relationsive film with production inserted (not yet production)"
                   );
@@ -735,7 +763,11 @@ class FilmController {
           } else {
             const queryInsertFilmProduct = `INSERT INTO film_production (film_id, production_id)VALUES ('${filmRow.film_id}', '${rows[0].id}');`;
             con.query(queryInsertFilmProduct, (error, rows) => {
-              if (error) throw error;
+              if (error)
+                res.json({
+                  success: false,
+                  message: error.message,
+                });
               console.log(
                 "1 record relationsive film with production inserted"
               );
@@ -746,18 +778,34 @@ class FilmController {
       pre_casts.forEach((cast) => {
         const querySelectCast = `SELECT id FROM casts WHERE title = '${cast}'`;
         con.query(querySelectCast, (error, rows) => {
-          if (error) throw error;
+          if (error)
+            res.json({
+              success: false,
+              message: error.message,
+            });
           if (rows.length === 0) {
             const queryInsertCast = `INSERT INTO casts (id, title)VALUES ('${cast}_id',"${cast}");`;
             con.query(queryInsertCast, (error, result) => {
-              if (error) throw error;
+              if (error)
+                res.json({
+                  success: false,
+                  message: error.message,
+                });
               console.log("1 record cast inserted");
               const querySelectCast = `SELECT id FROM casts WHERE title = '${cast}'`;
               con.query(querySelectCast, (error, rows) => {
-                if (error) throw error;
+                if (error)
+                  res.json({
+                    success: false,
+                    message: error.message,
+                  });
                 const queryInsertFilmCast = `INSERT INTO film_cast (film_id, cast_id)VALUES ('${filmRow.film_id}', '${rows[0].id}');`;
                 con.query(queryInsertFilmCast, (error, rows) => {
-                  if (error) throw error;
+                  if (error)
+                    res.json({
+                      success: false,
+                      message: error.message,
+                    });
                   console.log("1 record relationsive film with cast inserted");
                 });
               });
@@ -765,7 +813,11 @@ class FilmController {
           } else {
             const queryInsertFilmCast = `INSERT INTO film_cast (film_id, cast_id)VALUES ('${filmRow.film_id}', '${rows[0].id}');`;
             con.query(queryInsertFilmCast, (error, rows) => {
-              if (error) throw error;
+              if (error)
+                res.json({
+                  success: false,
+                  message: error.message,
+                });
               console.log("1 record relationsive film with cast inserted");
             });
           }
