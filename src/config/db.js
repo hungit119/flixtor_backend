@@ -1,15 +1,21 @@
-const mysql = require("mysql");
-const con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Tranduyhung11",
-  database: "flixtor",
-  multipleStatements: true,
+const { Client } = require("pg");
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URI,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
+
 function connect() {
-  con.connect(function (err) {
+  client.connect();
+
+  client.query("SELECT now();", (err, res) => {
     if (err) throw err;
-    console.log("connected");
+    for (let row of res.rows) {
+      console.log("Connected to database at");
+      console.log(JSON.stringify(row));
+    }
   });
 }
-module.exports = { connect, con };
+module.exports = { connect, client };
