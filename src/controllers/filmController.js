@@ -15,12 +15,12 @@ class FilmController {
     client.query(query, function (error) {
       if (error) throw error;
       client.query(
-        `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+        `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
       array_to_string(array_agg(distinct genres.title),',') as genres,
       array_to_string(array_agg(distinct countries.title),',') as countries,
       array_to_string(array_agg(distinct casts.title),',') as casts,
       array_to_string(array_agg(distinct productions.title),',') as productions,
-      film.up_to_date
+      film.timestamps
       from film
       inner join film_genre on film_genre.film_id = film.id
       inner join genres on genres.id = film_genre.genre_id
@@ -36,8 +36,8 @@ class FilmController {
       inner join watchlist_user on film.id = watchlist_user.film_id
       inner join users on watchlist_user.user_id = users.id
       where users.id = '${req.userId}'
-      group by film.stt,types.title,quantities.title,years.title,watchlist_user.up_to_date
-      order by film.up_to_date desc`,
+      group by film.stt,types.title,quantities.title,years.title,watchlist_user.timestamps
+      order by film.timestamps desc`,
         function (error, result) {
           if (error) throw error;
           res.json(
@@ -55,12 +55,12 @@ class FilmController {
   watchlist(req, res) {
     const { sortBy } = req.query;
     const user_id = req.userId;
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
     array_to_string(array_agg(distinct genres.title),',') as genres,
 	  array_to_string(array_agg(distinct countries.title),',') as countries,
 	  array_to_string(array_agg(distinct casts.title),',') as casts,
 	  array_to_string(array_agg(distinct productions.title),',') as productions,
-    film.up_to_date
+    film.timestamps
     from film
     inner join film_genre on film_genre.film_id = film.id
     inner join genres on genres.id = film_genre.genre_id
@@ -76,7 +76,7 @@ class FilmController {
     inner join watchlist_user on film.id = watchlist_user.film_id
     inner join users on watchlist_user.user_id = users.id
     where users.id = '${user_id}'
-    group by film.stt,types.title,quantities.title,years.title,watchlist_user.up_to_date
+    group by film.stt,types.title,quantities.title,years.title,watchlist_user.timestamps
     order by ${
       sortBy === "name a-z"
         ? "film.title"
@@ -85,8 +85,8 @@ class FilmController {
         : sortBy === "release date"
         ? "film.releases"
         : sortBy === "recently added"
-        ? "film.up_to_date"
-        : "watchlist_user.up_to_date"
+        ? "film.timestamps"
+        : "watchlist_user.timestamps"
     } desc`;
     client.query(query, function (error, result) {
       if (error) throw error;
@@ -192,11 +192,11 @@ class FilmController {
         });
         const pre_productions = productions.map((pro) => pro.trim());
         const pre_casts = casts.map((cast) => cast.trim());
-        var query = `INSERT INTO film (stt,id,title,poster,trailerurl,thumnail,times,description,tags,rating,imdb,releases,director,type_id,quantity_id,year_id)VALUES (${
+        var query = `INSERT INTO film (stt,id,title,poster,trailerurl,thumbnail,times,description,tags,rating,imdb,releases,director,type_id,quantity_id,year_id)VALUES (${
           filmRow.stt
         },'${filmRow.film_id}','${filmRow.title}','${filmRow.poster}','${
           filmRow.trailerurl
-        }','${filmRow.thumnail}','${filmRow.time}','${filmRow.description
+        }','${filmRow.thumbnail}','${filmRow.time}','${filmRow.description
           .split("")
           .filter((des) => des !== '"' || des !== "'")
           .join("")}','${filmRow.tags}',${filmRow.rating},${filmRow.imdb},'${
@@ -289,12 +289,12 @@ class FilmController {
   }
   // [GET] /api/films/search
   search(req, res) {
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
     array_to_string(array_agg(distinct genres.title),',') as genres,
 	  array_to_string(array_agg(distinct countries.title),',') as countries,
 	  array_to_string(array_agg(distinct casts.title),',') as casts,
 	  array_to_string(array_agg(distinct productions.title),',') as productions,
-    film.up_to_date
+    film.timestamps
     from film
     inner join film_genre on film_genre.film_id = film.id
     inner join genres on genres.id = film_genre.genre_id
@@ -323,12 +323,12 @@ class FilmController {
   // [GET] /api/films/byType
   filmByType(req, res) {
     const { key, type } = req.query;
-    const filter = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const filter = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
     array_to_string(array_agg(distinct genres.title),',') as genres,
 	  array_to_string(array_agg(distinct countries.title),',') as countries,
 	  array_to_string(array_agg(distinct casts.title),',') as casts,
 	  array_to_string(array_agg(distinct productions.title),',') as productions,
-    film.up_to_date
+    film.timestamps
     from film
     inner join film_genre on film_genre.film_id = film.id
     inner join genres on genres.id = film_genre.genre_id
@@ -379,12 +379,12 @@ class FilmController {
         }`;
       });
     });
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
       array_to_string(array_agg(distinct genres.title),',') as genres,
       array_to_string(array_agg(distinct countries.title),',') as countries,
       array_to_string(array_agg(distinct casts.title),',') as casts,
       array_to_string(array_agg(distinct productions.title),',') as productions,
-      film.up_to_date
+      film.timestamps
       from film
       inner join film_genre on film_genre.film_id = film.id
       inner join genres on genres.id = film_genre.genre_id
@@ -444,12 +444,12 @@ class FilmController {
         const productioKey = result.rows[0].productions
           .split(",")
           .map((production) => `'${production.trim()}'`);
-        let query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+        let query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
         array_to_string(array_agg(distinct genres.title),',') as genres,
 	      array_to_string(array_agg(distinct countries.title),',') as countries,
 	      array_to_string(array_agg(distinct casts.title),',') as casts,
 	      array_to_string(array_agg(distinct productions.title),',') as productions,
-        film.up_to_date
+        film.timestamps
         from film
         inner join film_genre on film_genre.film_id = film.id
         inner join genres on genres.id = film_genre.genre_id
@@ -484,12 +484,12 @@ class FilmController {
   }
   // [GET] /api/films/lastestMovies
   selectLastest(req, res) {
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
     array_to_string(array_agg(distinct genres.title),',') as genres,
 	  array_to_string(array_agg(distinct countries.title),',') as countries,
 	  array_to_string(array_agg(distinct casts.title),',') as casts,
 	  array_to_string(array_agg(distinct productions.title),',') as productions,
-    film.up_to_date
+    film.timestamps
     from film
     inner join film_genre on film_genre.film_id = film.id
     inner join genres on genres.id = film_genre.genre_id
@@ -522,12 +522,12 @@ class FilmController {
   // [GET] /api/films/:condition/:key/:value
   selectByCondition(req, res) {
     const { condition, key, value } = req.params;
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
     array_to_string(array_agg(distinct genres.title),',') as genres,
 	  array_to_string(array_agg(distinct countries.title),',') as countries,
 	  array_to_string(array_agg(distinct casts.title),',') as casts,
 	  array_to_string(array_agg(distinct productions.title),',') as productions,
-    film.up_to_date
+    film.timestamps
     from film
     inner join film_genre on film_genre.film_id = film.id
     inner join genres on genres.id = film_genre.genre_id
@@ -559,12 +559,12 @@ class FilmController {
   }
   // [GET] /api/films/type/:params
   filmsType(req, res) {
-    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+    const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
       array_to_string(array_agg(distinct genres.title),',') as genres,
       array_to_string(array_agg(distinct countries.title),',') as countries,
       array_to_string(array_agg(distinct casts.title),',') as casts,
       array_to_string(array_agg(distinct productions.title),',') as productions,
-      film.up_to_date
+      film.timestamps
       from film
       inner join film_genre on film_genre.film_id = film.id
       inner join genres on genres.id = film_genre.genre_id
@@ -581,7 +581,7 @@ class FilmController {
       req.query.year ? `and years.title = '${req.query.year}'` : ""
     }
       group by film.stt,types.title,quantities.title,years.title
-      order by film.up_to_date desc
+      order by film.timestamps desc
       ${req.query.limit ? `LIMIT ${req.query.limit}` : ""};`;
     client.query(query, function (err, result) {
       if (err) throw err;
@@ -596,12 +596,12 @@ class FilmController {
   film(req, res) {
     const film_id = req.params.id;
     try {
-      const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
+      const query = `select film.stt,film.id,film.title,film.poster,film.trailerURL,film.thumbnail,film.times,film.description,film.tags,film.rating,film.imdb,film.releases,film.director,types.title as type,quantities.title as quantity,years.title as year,
         array_to_string(array_agg(distinct genres.title),',') as genres,
         array_to_string(array_agg(distinct countries.title),',') as countries,
         array_to_string(array_agg(distinct casts.title),',') as casts,
         array_to_string(array_agg(distinct productions.title),',') as productions,
-        film.up_to_date
+        film.timestamps
         from film
         inner join film_genre on film_genre.film_id = film.id
         inner join genres on genres.id = film_genre.genre_id
@@ -688,10 +688,10 @@ class FilmController {
       });
       const pre_productions = productions.map((pro) => pro.trim());
       const pre_casts = casts.map((cast) => cast.trim());
-      var query = `INSERT INTO film (id,title,poster,trailerurl,thumnail,times,description,tags,rating,imdb,releases,director,type_id,quantity_id,year_id)VALUES ('${
+      var query = `INSERT INTO film (id,title,poster,trailerurl,thumbnail,times,description,tags,rating,imdb,releases,director,type_id,quantity_id,year_id)VALUES ('${
         filmRow.film_id
       }','${filmRow.title}','${filmRow.poster}','${filmRow.trailerurl}','${
-        filmRow.thumnail
+        filmRow.thumbnail
       }','${filmRow.time}','${filmRow.description.replace(/['"]+/g, "")}','${
         filmRow.tags
       }',${filmRow.rating},${filmRow.imdb},'${filmRow.release}','${

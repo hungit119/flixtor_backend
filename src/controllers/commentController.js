@@ -1,7 +1,7 @@
 const { client } = require("../config/db");
 class CommentController {
   index(req, res) {
-    const querySelectCommentByFilmId = `select c.id as comment_id, m.body,u.username,f.id as film_id,c.up_to_date from "comment" c
+    const querySelectCommentByFilmId = `select c.id as comment_id, m.body,u.username,f.id as film_id,c.timestamps from "comment" c
     inner join message m on c.message_id = m.id 
     inner join users u on m.user_id = u.id 
     inner join film f on c.film_id = f.id 
@@ -27,7 +27,7 @@ class CommentController {
       client.query(queryCreateComment, (error) => {
         if (error) throw error;
         console.log("created a new comment.");
-        const queryRecentComment = `select c.id as commentId ,m.body,u.username,f.id as filmId,c.up_to_date from "comment" c
+        const queryRecentComment = `select c.id as commentId ,m.body,u.username,f.id as filmId,c.timestamps from "comment" c
         inner join message m on c.message_id = m.id 
         inner join users u on m.user_id = u.id 
         inner join film f on c.film_id = f.id 
